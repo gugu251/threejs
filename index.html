@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>演示</title>
+
+    
+    <script src="js/three.js"></script>
+        <script src="js/Stats.js"></script>
+        <script src="js/tween.min.js"></script>
+        <script type="text/javascript" src="js/OrbitControls.js"></script>
+        <script src="js/loaders/OBJLoader.js"></script>
+</head>
+
+<body>
+        <div  id="glcvs" style=" margin: 0 auto; width:100%;height: 700px;"></div>
+</body>
+
+<script>
+    init();
+    animate();
+    lft();
+    var scene;
+    var camera;
+    var controls;
+    var mouse = new THREE.Vector3(), INTERSECTED;
+    var object;
+
+    function lft() {
+        var geometry = new THREE.BoxBufferGeometry(1, 1, 1);
+        var subgroup = new THREE.Group();
+        var W = 200;
+        var H = 200;
+        var D = 200;
+        for (var i = 0; i < 10; i++) {
+            var object = new THREE.Mesh(geometry, getmat(11, 0));
+            W = random(1000,2000);
+            H = random(100,900);
+            D = random(100,900);
+            var ll = W/2;
+            // object.rotation.set(10,1000,1000);
+            object.scale.set(W,H,D);
+            object.position.set(0,0,ll);
+            subgroup.add(object);
+            
+        }
+        scene.add(subgroup);
+    }
+
+
+    function random(lower, upper) {
+        return Math.floor(Math.random() * (upper - lower+1)) + lower;
+    }  
+
+    function getmat(matName, XY) {
+            //创建横竖纹理
+            var picName = "";
+            if (Math.abs(XY - 0) < 0.1) { picName = 'img/a.jpg'; } else { picName = 'img/b.jpg'; }
+
+            var texture = new THREE.TextureLoader().load(picName);
+            var mat = new THREE.MeshPhysicalMaterial({ color: 0xFAFAFA, roughness: 0.7, metalness: 0.2, map: texture });
+            return mat;
+        }
+    
+
+
+    function init() {
+
+        container = document.getElementById('glcvs');
+        //渲染器
+        renderer = new THREE.WebGLRenderer({ antialias: true });
+        //画布大小进行了设定
+        renderer.setPixelRatio(window.devicePixelRatio);
+        //渲染尺寸
+        renderer.setSize(container.clientWidth, container.clientHeight);
+        //设置画布颜色
+        renderer.setClearColor(0xF1F1F1);
+        //生成画布
+        document.body.appendChild(renderer.domElement);
+
+        //用于鼠标去获取在3D世界被鼠标选中的一些物体
+        raycaster = new THREE.Raycaster();
+
+        //设置相机 40度
+        camera = new THREE.PerspectiveCamera(40, container.clientWidth / container.clientHeight, 1, 500000);
+        //设置点的位置
+        camera.up = new THREE.Vector3(0, 0, 1);
+        camera.position.set(0, -10000, 1800);
+
+        //场景
+        scene = new THREE.Scene();
+        //设置光源颜色
+        scene.add(new THREE.AmbientLight(0x777777));
+        //平行光设置
+        var directionalLight = new THREE.DirectionalLight(0xFFFFFF, 0.92);
+        directionalLight.position.set(300, 200, 500);
+        scene.add(directionalLight);
+        //平行光设置
+        var directionalLight2 = new THREE.DirectionalLight(0xFFFFFF, 0.38);
+        directionalLight2.position.set(-200, -100, 100);
+        scene.add(directionalLight2);
+
+        //网格 边长为20000，大网格中有小网格，小网格的边长是1000.
+        var gridHelper = new THREE.GridHelper(20000, 20, 0x0000ff, 0x808080);
+        gridHelper.rotation.x = Math.PI / 2;
+        gridHelper.enabled = false;
+        scene.add(gridHelper);
+
+        //渲染画布
+        container.appendChild(renderer.domElement);
+
+        //用户交互插件 鼠标左键按住旋转，右键按住平移，滚轮缩放 
+        controls = new THREE.OrbitControls(camera, renderer.domElement);
+        //聚焦坐标
+        controls.target.set(0, 0, 0);
+        controls.update();
+
+        // 如果使用animate方法时，将此函数删除 
+        container.addEventListener('click', onWindowMouseMove, false);
+        window.addEventListener('resize', onWindowResize, false);
+    }
+
+    function onWindowResize() {
+        camera.aspect = container.clientWidth / container.clientHeight;
+        camera.updateProjectionMatrix();
+
+        renderer.setSize(container.clientWidth, container.clientHeight);
+    }
+
+    function onWindowMouseMove(event) {
+        event.preventDefault();
+
+        mouse.x = ((event.clientX - 256) / container.clientWidth) * 2 - 1;
+        mouse.y = - ((event.clientY - 50) / container.clientHeight) * 2 + 1;
+        mouse.z = 0.5;
+
+        raycaster.setFromCamera(mouse, camera);
+        var intersects = raycaster.intersectObjects(scene.children, true);
+        if (intersects.length > 0) {
+            showBJXX(intersects[0].object.parent.id);
+            d.openTo(intersects[0].object.parent.id, true, false);
+        }
+    }
+
+    function animate() {
+        requestAnimationFrame(animate);
+        render();
+    }
+
+    function render() {
+        //var time = Date.now() * 0.001;
+        controls.update();
+        renderer.render(scene, camera);
+    }
+
+</script>
+</html>
